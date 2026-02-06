@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kalkulator Modern</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            height: 100vh;
+            height: -webkit-fill-available; /* Fix untuk mobile browser */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            overflow: hidden; /* Mencegah scroll pada body */
+            touch-action: manipulation;
+        }
+        
+        html {
+            height: -webkit-fill-available;
+        }
+
+        .glass-morphism {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .calc-button {
+            transition: all 0.1s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .calc-button:active {
+            transform: scale(0.95);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Optimasi tinggi untuk layar HP */
+        .main-container {
+            height: 100%;
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .display-area {
+            flex: 1; /* Mengambil sisa ruang yang tersedia */
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 2rem 1.5rem;
+        }
+
+        .button-grid {
+            padding: 1.5rem;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 2rem 2rem 0 0;
+        }
+
+        @media (min-width: 768px) {
+            .main-container {
+                height: 85vh;
+                border-radius: 2.5rem;
+                overflow: hidden;
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            }
+            .button-grid {
+                border-radius: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        <!-- Area Riwayat (Hanya Desktop) -->
+        <div id="history-panel" class="hidden md:flex flex-col p-4 bg-black/20 border-b border-white/5 h-32 overflow-y-auto text-xs">
+            <div id="history-list" class="space-y-1">
+                <p class="text-white/30 italic">Belum ada riwayat</p>
+            </div>
+        </div>
+
+        <!-- Area Display -->
+        <div class="display-area">
+            <div id="previous-op" class="text-indigo-400 text-right text-lg font-medium h-8 mb-2 opacity-80"></div>
+            <div id="display" class="text-white text-right text-6xl font-light tracking-tighter truncate">0</div>
+        </div>
+
+        <!-- Grid Tombol -->
+        <div class="button-grid glass-morphism">
+            <!-- Row 1 -->
+            <button onclick="clearDisplay()" class="calc-button col-span-2 bg-red-500/20 text-red-400 p-6 rounded-2xl font-bold text-xl uppercase">AC</button>
+            <button onclick="deleteLast()" class="calc-button bg-white/10 text-white p-6 rounded-2xl flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M3 12l6.414 6.414a2 2 0 001.414.586H19a2 2 0 002-2V7a2 2 0 00-2-2h-8.172a2 2 0 00-1.414.586L3 12z" />
+                </svg>
+            </button>
+            <button onclick="appendOperator('/')" class="calc-button bg-indigo-500/30 text-indigo-300 p-6 rounded-2xl text-2xl font-semibold">÷</button>
+
+            <!-- Row 2 -->
+            <button onclick="appendNumber('7')" class="calc-button bg-white/5 text-white p-6 rounded-2xl text-2xl">7</button>
+            <button onclick="appendNumber('8')" class="calc-button bg-white/5 text-white p-6 rounded-2xl text-2xl">8</button>
+            <button onclick="appendNumber('9')" class="calc-button bg-white/5 text-white p-6 rounded-2xl text-2xl">9</button>
+            <button onclick="appendOperator('*')" class="calc-button bg-indigo-500/30 text-indigo-300 p-6 rounded-2xl text-2xl font-semibold">×</button>
+
+            <!-- Row 3 -->
+            <button onclick="appendNumber('4')" class="calc-button bg-white/5 text-white p-6 rounded-2xl text-2xl">4</button>
+            <button onclick="appendNumber('5')" class="calc-button bg-white/5 text-white p-6 rounded-2xl text-2xl">5</button>
+            <button onclick="appendNumber('6')" class="calc-button bg-white/5 text-white p-6 rounded-2xl text-2xl">6</button>
+            <button onclick="appendOperator('-')" class="calc-button bg-indigo-500/30 text-indigo-300 p-6 rounded-2xl text-2xl font-semibold">−</button>
+
+            <!-- Row 4 -->
+            <button onclick="appendNumber('1')" class="calc-button bg-white/5 text-white p-6 rounded-2xl text-2xl">1</button>
+            <button onclick="appendNumber('2')" class="calc-button bg-white/5 text-white p-6 rounded-2xl text-2xl">2</button>
+            <button onclick="appendNumber('3')" class="calc-button bg-white/5 text-white p-6 rounded-2xl text-2xl">3</button>
+            <button onclick="appendOperator('+')" class="calc-button bg-indigo-500/30 text-indigo-300 p-6 rounded-2xl text-2xl font-semibold">+</button>
+
+            <!-- Row 5 -->
+            <button onclick="appendNumber('0')" class="calc-button col-span-2 bg-white/5 text-white p-6 rounded-2xl text-2xl">0</button>
+            <button onclick="appendNumber('.')" class="calc-button bg-white/5 text-white p-6 rounded-2xl text-2xl">.</button>
+            <button onclick="calculate()" class="calc-button bg-indigo-500 text-white p-6 rounded-2xl text-2xl font-bold">=</button>
+        </div>
+    </div>
+
+    <script>
+        let currentInput = '0';
+        let previousInput = '';
+        let operator = null;
+        let shouldResetScreen = false;
+
+        const display = document.getElementById('display');
+        const previousOpDisplay = document.getElementById('previous-op');
+        const historyList = document.getElementById('history-list');
+
+        function updateDisplay() {
+            display.innerText = currentInput;
+            // Menyesuaikan ukuran font jika angka terlalu panjang
+            if (currentInput.length > 8) {
+                display.classList.replace('text-6xl', 'text-4xl');
+            } else {
+                display.classList.replace('text-4xl', 'text-6xl');
+            }
+        }
+
+        function appendNumber(number) {
+            if (currentInput === '0' || shouldResetScreen) {
+                currentInput = number;
+                shouldResetScreen = false;
+            } else {
+                if (number === '.' && currentInput.includes('.')) return;
+                if (currentInput.length > 12) return; // Limit input
+                currentInput += number;
+            }
+            updateDisplay();
+        }
+
+        function appendOperator(op) {
+            if (operator !== null && !shouldResetScreen) calculate();
+            previousInput = currentInput;
+            operator = op;
+            previousOpDisplay.innerText = `${previousInput} ${op}`;
+            shouldResetScreen = true;
+        }
+
+        function clearDisplay() {
+            currentInput = '0';
+            previousInput = '';
+            operator = null;
+            previousOpDisplay.innerText = '';
+            shouldResetScreen = false;
+            updateDisplay();
+        }
+
+        function deleteLast() {
+            if (shouldResetScreen) return;
+            if (currentInput.length > 1) {
+                currentInput = currentInput.slice(0, -1);
+            } else {
+                currentInput = '0';
+            }
+            updateDisplay();
+        }
+
+        function calculate() {
+            if (operator === null || shouldResetScreen) return;
+            
+            let result;
+            const prev = parseFloat(previousInput);
+            const current = parseFloat(currentInput);
+
+            if (isNaN(prev) || isNaN(current)) return;
+
+            switch (operator) {
+                case '+': result = prev + current; break;
+                case '-': result = prev - current; break;
+                case '*': result = prev * current; break;
+                case '/': 
+                    if (current === 0) {
+                        showError("Error");
+                        return;
+                    }
+                    result = prev / current; 
+                    break;
+                default: return;
+            }
+
+            // Simpan riwayat (internal)
+            const eq = `${previousInput}${operator}${currentInput}=${result}`;
+            const item = document.createElement('div');
+            item.className = 'text-white/50 border-b border-white/5 pb-1';
+            item.innerText = eq;
+            if(historyList.querySelector('p')) historyList.innerHTML = '';
+            historyList.prepend(item);
+
+            currentInput = parseFloat(result.toFixed(8)).toString();
+            operator = null;
+            previousOpDisplay.innerText = '';
+            shouldResetScreen = true;
+            updateDisplay();
+        }
+
+        function showError(msg) {
+            display.innerText = msg;
+            shouldResetScreen = true;
+            setTimeout(clearDisplay, 1500);
+        }
+
+        // Keyboard Support
+        document.addEventListener('keydown', (e) => {
+            if (e.key >= 0 && e.key <= 9) appendNumber(e.key);
+            if (e.key === '.') appendNumber('.');
+            if (e.key === '=' || e.key === 'Enter') { e.preventDefault(); calculate(); }
+            if (e.key === 'Backspace') deleteLast();
+            if (e.key === 'Escape') clearDisplay();
+            if (['+', '-', '*', '/'].includes(e.key)) appendOperator(e.key);
+        });
+    </script>
+</body>
+</html>
